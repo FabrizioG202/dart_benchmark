@@ -20,7 +20,8 @@ Add the package to your `pubspec.yaml`, for now this is not available on pub, bu
 ```yaml
 dependencies:
     benchmark: 
-        git: https://github.com/FabrizioG202/dart_benchmark.git
+      git:
+        url: https://github.com/FabrizioG202/dart_benchmark.git
         path: benchmark
 ```
 
@@ -36,15 +37,17 @@ dart pub get
 void main()
 {
   // Set up logging
-  Logger.root.level = Level.INFO;
-  Logger.root.onRecord.listen((record) => print(record.message));
   final logger = Logger('FibonacciBenchmark');
+  final subscription = logger.onRecord.listen((record) => print(record.message));
 
   // Run the Benchmark
   final times = benchmark(() => fibRecursive(32), 10);
 
   // Log Results
   logDurationMetrics(times, logger: logger, metrics: metrics);
+
+  // Close the subscription to the logger
+  unawaited(subscription.cancel());
 }
 ```
 
@@ -60,7 +63,9 @@ max: 2.89 ms
 - [ ] More default metrics.
 - [ ] Performance Comparisons.
 - [ ] Custom Precision in Duration Formatting.
-- [ ] Async Support.
+- [ ] Async Support (Support for asynchronous functions)
+- [ ] Better Metrics (Standard Deviation, etc.)
+- [ ] Logging to File. 
 
 ## License
 
