@@ -35,7 +35,10 @@ dart pub get
 
 ```dart
 void main()
-{
+{ 
+  // Define the metrics we are interested in
+  final metrics = [AverageMetric(), MinMetric(), MaxMetric()];
+  
   // Set up logging
   final logger = Logger('FibonacciBenchmark');
   final subscription = logger.onRecord.listen((record) => print(record.message));
@@ -43,7 +46,12 @@ void main()
   // Run the Benchmark
   final times = benchmark(() => fibRecursive(32), 10);
 
-  // Log Results
+  // Now, to make sense of the results, you can either:
+  // 1) explicitly print the metrics
+  final computedMetrics = computeAllMetrics(times, metrics);
+  print(computedMetrics);
+
+  // 2) Use pre-defined logger-based printing
   logDurationMetrics(times, logger: logger, metrics: metrics);
 
   // Close the subscription to the logger

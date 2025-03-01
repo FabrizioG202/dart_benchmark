@@ -54,6 +54,7 @@ List<Duration> benchmark(
   return times;
 }
 
+/// TODO: Validate the possibility of deprecating this.
 void logDurationMetrics(
   List<Duration> durations, {
   required Logger logger,
@@ -67,6 +68,14 @@ void logDurationMetrics(
       .map((m) => m.reportShort(m.calculateInternal(durations)))
       .toList()
       .forEach(logger.info);
+}
+
+/// A utility that provides computation of metrics from durations.
+List<X> computeAllMetrics<X>(
+  List<Duration> durations,
+  List<MetricBase<X>> metrics,
+) {
+  return metrics.map((m) => m.calculateInternal(durations)).toList();
 }
 
 /// A base class for a metric, like average, min, max, etc.
