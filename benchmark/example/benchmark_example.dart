@@ -26,18 +26,37 @@ void main() {
   Logger.root.onRecord.listen((record) => print(record.message));
   final logger = Logger('FibonacciBenchmark');
 
-  // Common metrics to use
-  final metrics = [AverageMetric(), MinMetric(), MaxMetric()];
+  final metrics = [
+    // Common metrics to use
+    DurationMeanMetric(),
+    DurationMinMetric(),
+    DurationMaxMetric(),
+    DurationStdDevMetric(),
+
+    // Our metrics
+    MyDurationMeanMetric(),
+  ];
 
   // Benchmark recursive implementation
   final recursiveTimes = benchmark(() => fibRecursive(32), 10);
 
   logger.info('Recursive Fibonacci(32):');
-  logDurationMetrics(recursiveTimes, logger: logger, metrics: metrics);
+  for (var m in metrics) {
+    logger.info(m.reportShort(m.evaluate(recursiveTimes)));
+  }
 
   // Benchmark iterative implementation
   final iterativeTimes = benchmark(() => fibIterative(32), 10);
 
   logger.info('\nIterative Fibonacci(32):');
-  logDurationMetrics(iterativeTimes, logger: logger, metrics: metrics);
+  for (var m in metrics) {
+    logger.info(m.reportShort(m.evaluate(iterativeTimes)));
+  }
+}
+
+/// An example on how to override [DurationMeanMetric] to make it print
+/// in a different format
+class MyDurationMeanMetric extends DurationMeanMetric {
+  @override
+  String reportShort(Duration value) => 'My mean: ${value.inMicroseconds} μs';
 }

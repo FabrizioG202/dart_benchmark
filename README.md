@@ -1,10 +1,10 @@
 # Benchmark Utility for Dart.
 
-Bare-minimum, highly customizable benchmarking utility for Dart.
+Minimal, highly customizable benchmarking utility for Dart.
 
 ## Why?
 
-I am aware that different implementations of benchmarking utilities in dart already exists, such as `benchmarking_harness`. However, I needed an utility which was customizable especially in the reporting of the metrics and run count.
+I am aware that different implementations of benchmarking utilities in dart already exists, such as `benchmarking_harness`. However, I needed an utility which was flexible especially in the reporting of the metrics and run count.
 
 ## Features
 
@@ -15,7 +15,7 @@ I am aware that different implementations of benchmarking utilities in dart alre
 
 ## Installation
 
-Add the package to your `pubspec.yaml`, for now this is not available on pub, but I intend of publishing it in the near future. For this reason, this package can only be depended on using git dependencies.
+For now, this package is not available on pub, but I intend to publish it in the near future. For this reason, this package can only be depended on using git dependencies. To do this, add the following to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
@@ -34,37 +34,83 @@ dart pub get
 ## Simple Example
 
 ```dart
-void main()
-{ 
-  // Define the metrics we are interested in
-  final metrics = [AverageMetric(), MinMetric(), MaxMetric()];
-  
+import 'package:benchmark/benchmark.dart';
+import 'package:logging/logging.dart';
+
+// Recursive Fibonacci implementation (intentionally inefficient)
+int fibRecursive(int n) {
+  if (n <= 1) return n;
+  return fibRecursive(n - 1) + fibRecursive(n - 2);
+}
+
+void main() {
   // Set up logging
+  Logger.root.level = Level.INFO;
+  Logger.root.onRecord.listen((record) => print(record.message));
   final logger = Logger('FibonacciBenchmark');
-  final subscription = logger.onRecord.listen((record) => print(record.message));
 
-  // Run the Benchmark
-  final times = benchmark(() => fibRecursive(32), 10);
+  final metrics = [
+    // Common metrics to use
+    DurationMeanMetric(),
+    DurationMinMetric(),
+    DurationMaxMetric(),
+    DurationStdDevMetric(),
+  ];
 
-  // Now, to make sense of the results, you can either:
-  // 1) explicitly print the metrics
-  final computedMetrics = computeAllMetrics(times, metrics);
-  print(computedMetrics);
+  // Benchmark recursive implementation
+  final recursiveTimes = benchmark(() => fibRecursive(32), 10);
 
-  // 2) Use pre-defined logger-based printing
-  logDurationMetrics(times, logger: logger, metrics: metrics);
-
-  // Close the subscription to the logger
-  unawaited(subscription.cancel());
+  logger.info('Recursive Fibonacci(32):');
+  for (var m in metrics) {
+    logger.info(m.reportShort(m.evaluate(recursiveTimes)));
+  }
 }
 ```
 
 This will output something like:
 ```
-Benchmark Results:
-average: 2.54 ms
+Recursive Fibonacci(32):
+mean: 2.54 ms
 min: 2.31 ms
 max: 2.89 ms
+std dev: 0.15 ms
+```
+
+## Creating Custom Metrics
+
+You can create custom metrics by extending any of the existing metric classes. Here's an example of creating a custom mean metric with a different reporting format:
+
+```dart
+/// An example on how to override [DurationMeanMetric] to make it print
+/// in a different format
+class MyDurationMeanMetric extends DurationMeanMetric {
+  @override
+  String reportShort(Duration value) => 'My mean: ${value.inMicroseconds} μs';
+}
+
+// Usage:
+final metrics = [
+  DurationMeanMetric(),
+  MyDurationMeanMetric(),
+];
+```
+
+This will output your custom formatted metric along with the standard ones.
+
+## Import Prefixes
+
+Since this package provides several global functions, it might be better to import it using a prefix to avoid naming conflicts:
+
+```dart
+import 'package:benchmark/benchmark.dart' as bench;
+
+void main() {
+  // Use the benchmark function with prefix
+  final recursiveTimes = bench.benchmark(() => fibRecursive(32), 10);
+  
+  // Use other functions with prefix
+  bench.logDurationMetrics(recursiveTimes, logger: logger, metrics: metrics);
+}
 ```
 
 ## Roadmap

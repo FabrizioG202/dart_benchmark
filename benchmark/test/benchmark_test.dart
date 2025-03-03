@@ -73,32 +73,33 @@ void main() {
     ];
 
     test('AverageMetric calculates correct average', () {
-      final metric = AverageMetric();
-      final result = metric.calculateInternal(durations);
+      final metric = DurationMeanMetric();
+      final result = metric.evaluate(durations);
       expect(result, equals(Duration(microseconds: 200)));
     });
 
     test('MinMetric finds minimum duration', () {
-      final metric = MinMetric();
-      final result = metric.calculateInternal(durations);
+      final metric = DurationMinMetric();
+      final result = metric.evaluate(durations);
       expect(result, equals(Duration(microseconds: 100)));
     });
 
     test('MaxMetric finds maximum duration', () {
-      final metric = MaxMetric();
-      final result = metric.calculateInternal(durations);
+      final metric = DurationMaxMetric();
+      final result = metric.evaluate(durations);
       expect(result, equals(Duration(microseconds: 300)));
     });
 
     test('metrics handle empty duration list', () {
       final emptyDurations = <Duration>[];
-      final metrics = [AverageMetric(), MinMetric(), MaxMetric()];
+      final metrics = [
+        DurationMeanMetric(),
+        DurationMinMetric(),
+        DurationMaxMetric(),
+      ];
 
       for (final metric in metrics) {
-        expect(
-          () => metric.calculateInternal(emptyDurations),
-          throwsStateError,
-        );
+        expect(() => metric.evaluate(emptyDurations), throwsStateError);
       }
     });
 
@@ -106,15 +107,15 @@ void main() {
       final singleDuration = [Duration(microseconds: 100)];
 
       expect(
-        AverageMetric().calculateInternal(singleDuration),
+        DurationMeanMetric().evaluate(singleDuration),
         equals(Duration(microseconds: 100)),
       );
       expect(
-        MinMetric().calculateInternal(singleDuration),
+        DurationMinMetric().evaluate(singleDuration),
         equals(Duration(microseconds: 100)),
       );
       expect(
-        MaxMetric().calculateInternal(singleDuration),
+        DurationMaxMetric().evaluate(singleDuration),
         equals(Duration(microseconds: 100)),
       );
     });
@@ -168,7 +169,11 @@ void main() {
       logDurationMetrics(
         durations,
         logger: logger,
-        metrics: [AverageMetric(), MinMetric(), MaxMetric()],
+        metrics: [
+          DurationMeanMetric(),
+          DurationMinMetric(),
+          DurationMaxMetric(),
+        ],
       );
 
       expect(logMessages, hasLength(4)); // Header + 3 metrics
@@ -194,7 +199,11 @@ void main() {
       logDurationMetrics(
         [],
         logger: logger,
-        metrics: [AverageMetric(), MinMetric(), MaxMetric()],
+        metrics: [
+          DurationMeanMetric(),
+          DurationMinMetric(),
+          DurationMaxMetric(),
+        ],
       );
 
       expect(logMessages, isEmpty);
@@ -202,7 +211,7 @@ void main() {
 
     test('metric report format is correct', () {
       final duration = Duration(microseconds: 1500);
-      final metric = AverageMetric();
+      final metric = DurationMeanMetric();
 
       expect(metric.reportShort(duration), equals('average: 1.50 ms'));
     });
